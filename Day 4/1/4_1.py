@@ -2,7 +2,7 @@
 ###### https://adventofcode.com/2024/day/4 #######################
 #################################################################
 import numpy as np
-file = "input.txt"
+file = "test.txt"
 
 DAY_NO = "4"
 PART = "1"
@@ -39,4 +39,18 @@ for y in range(1,height+1):
 		# print(f"{x},{y}, {returnCount3x3(wall, y, x)}, {returnCount3x3(wall, y, x) < 4}")
 		count += wall[y][x]*(returnCount3x3(wall, y, x) < 4)
 
+
+def wallPrint(arr):
+
+	for y in range(1,height+1):
+		linestring = ""
+		for x in range(1, length+1):
+			if wall[y][x]:
+				linestring += "@"
+			else:
+				linestring += "."
+
+		print(linestring)
+	print("")
+wallPrint(wall)
 print(count)

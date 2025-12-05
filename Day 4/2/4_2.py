@@ -33,8 +33,24 @@ print(wall)
 def returnCount3x3(arr, y, x):
 	return arr[y-1][x-1] + arr[y-1][x] + arr[y-1][x+1] + arr[y][x-1] + arr[y][x+1] + arr[y+1][x-1] + arr[y+1][x] + arr[y+1][x+1]
 
+
+def wallPrint(arr):
+
+	for y in range(1,height+1):
+		linestring = ""
+		for x in range(1, length+1):
+			if wall[y][x]:
+				linestring += "@"
+			else:
+				linestring += "."
+
+		print(linestring)
+	print("")
+wallPrint(wall)
+
 lastcount = -1
 count = 0
+wallPrint(wall)
 while lastcount != count:
 	lastcount = count
 	for y in range(1,height+1):
@@ -43,7 +59,14 @@ while lastcount != count:
 			if wall[y][x]*(returnCount3x3(wall, y, x) < 4):
 				wall[y][x] = 0
 				count += 1
+	wallPrint(wall)
 	print(count)
+
+	print()
+
+
+
+
 
 
 print(count)
