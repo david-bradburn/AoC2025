@@ -2,6 +2,16 @@
 ###### https://adventofcode.com/{}/day/{} #######################
 #################################################################
 
+# misc functions
+def fprint(debug: str) -> str:
+	print(debug)
+	return debug + "\n"
+
+def debugLog(debugString: str):
+	fileLoc = ".\Day" + DAY_NO +"\misc\zdebug.txt"
+	with open(fileLoc, "w") as fd:
+		fd.writelines(debugString)
+
 file = "test.txt"
 
 DAY_NO = "{}"
