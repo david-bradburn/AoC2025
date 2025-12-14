@@ -4,6 +4,8 @@
 import ast
 
 import copy
+import numpy as np
+from itertools import product
 
 # misc functions
 def fprint(debug: str) -> str:
@@ -15,7 +17,7 @@ def debugLog(debugString: str):
 	with open(fileLoc, "w") as fd:
 		fd.writelines(debugString)
 
-file = "input.txt"
+file = "test.txt"
 
 DAY_NO = "10"
 PART = "2"
@@ -36,9 +38,6 @@ for line in cleanerInput:
 	joltage = temp[-1][1:-1].split(",")
 	buttons =temp[1:-1] # [n[1:-1].split(",") for n in temp[1:-1]]
 
-	# lightsInt = ''
-	# for light in lights:
-	# 	lightsInt += str(1 if light == '#' else 0)
 	buttonsClean = []
 	for button in buttons:
 		buttonsStripped = button[1:-1].split(",")
@@ -52,36 +51,48 @@ for line in cleanerInput:
 		# print(value)
 		joltageClean.append(int(value))
 
-	# print(lightsInt)
-	# print(lights, buttonsClean, joltage)
-
 
 	machine.append([buttonsClean, joltageClean])
 
 for i in machine:
 	print(i)
-# print('0'*4)
+
+
+
+
+
 class pathFinding():
 	def __init__(self, joltage, buttons):
 		self.targetjoltage = joltage
+		self.targetj = np.array(self.targetjoltage).transpose()
+		print(f"egg {self.targetj}, {self.targetj.shape}")
 		self.joltageSize = len(joltage)
-		# print(f"num joltages: {self.joltageSize}")
-		# self.numStates = 2**self.stateSize
+
+		assert(self.joltageSize >= 4 and self.joltageSize <= 10)
 		self.STARTSTATE = [0]*self.joltageSize
 		self.buttons = buttons
 		self.numButtons = len(self.buttons)
-		self.calculateMaxButtonPresses()
-
-		buttonPressCount = [0]*self.numButtons
-		# print(self.STARTSTATE)
-		self.stateDict = {f"{self.STARTSTATE}": [0, self.hueristic(self.STARTSTATE, self.targetjoltage), buttonPressCount, None]}
+		self.calculateMaxButtonPresses() # sets self.maxbutttonspresses
 
 
-		self.openList = {f"{self.STARTSTATE}": [0, self.hueristic(self.STARTSTATE, self.targetjoltage), buttonPressCount, None]}
-		self.closedList = []
+		self.numberofCombos = self.multArr(self.maxButtonPress)
+		print(self.numberofCombos)
+		self.STARTSTATEVEC = np.array(self.STARTSTATE)
+
+		self.buttonVecs = self.buttonsToStateTrans()
+		print(self.buttonVecs)
+		A = np.array(self.buttonVecs)
+		At = A.transpose()
+		np.matmul
+
+		try:
+			p1 = np.matmul(At,A)**(np.matmul(-At,self.targetj))
+			print(p1)
+		except:
+			p2 = np.linalg.matrix_power(np.matmul(At, np.matmul(A, At)),(-self.targetj))
 
 
-		self.main()
+		# self.main()
 
 		# print(self.stateDict)
 	def calculateMaxButtonPresses(self):
@@ -89,7 +100,7 @@ class pathFinding():
 		for button in self.buttons:
 			tmp = [0]*self.joltageSize
 			count = 0
-			while self.isValid(tmp, [], False):
+			while self.isValid(tmp, []):
 				count += 1
 				tmp = self.pressButton(tmp, button)
 
@@ -98,7 +109,9 @@ class pathFinding():
 
 
 	def finalCount(self):
-		return self.stateDict[f"{self.targetjoltage}"][0]
+		print(f"number of buttons pressed: {self.pressCount}")
+		return min(self.pressCount)
+		# return self.stateDict[f"{self.targetjoltage}"][0]
 
 	def pressButton(self, state:str, button:list):
 		prevState = state
@@ -111,82 +124,60 @@ class pathFinding():
 
 		return curState
 
-	def isValid(self, curState, buttonPressCount, mask:bool):
+	def isValid(self, curState, buttonPressCount):
 		for index, state in enumerate(curState):
 			if state > self.targetjoltage[index]:
 				return False
 
-		if mask:
-			for index, count in enumerate(buttonPressCount):
-				if count > self.maxButtonPress[index]:
-					return False
 		return True
 
-	def hueristic(self, pos1, pos2):
-		dis = 0
-		for index, state in enumerate(pos1):
-			dis += (state - pos2[index])**2
-		dis = dis**(1/2)
-		return dis
 
+	def buttonsToStateTrans(self):
+		temp = []
+		for buttton in self.buttons:
+			tmp = copy.deepcopy(self.STARTSTATE)
+			for index in buttton:
+				tmp[index] += 1
+			# print(tmp)
 
+			temp.append(tmp)
+		# print(temp)
+		return temp
 
+	def checkFunction(self, presses):
+		value = copy.deepcopy(self.STARTSTATEVEC)
+		# print(presses)
+		# print(len(presses), self.numButtons, len(presses) == self.numButtons)
+		if (len(presses) == self.numButtons):
+			assert(len(presses) == self.numButtons)
+			assert(len(presses) == len(self.buttonVecs))
+			# print(value)
+			# print(self.buttonVecs)
+			for index in range(self.numButtons):
+
+				value += self.buttonVecs[index]*int(presses[index])
+			if list(value) == self.targetjoltage:
+				self.pressCount.append(self.countPressed(presses))
+
+	def multArr(self, arr):
+		i = 1
+		for n in arr:
+			i *= n
+		return i
+	def countPressed(self, pressses):
+		total = 0
+		for value in pressses:
+			total += value
+		return total
 
 	def main(self):
-		while self.openList:
-			# print(len(self.openList))
-			pos = list(self.openList)[0]
-			posList = ast.literal_eval(pos)
-			curPosHuer_g = self.openList[pos][0]
-			print(curPosHuer_g)
-			curf = self.openList[pos][1]
-			# print(self.hueristic(posList, self.targetjoltage))
+		self.pressCount = []
+		print(f"Number of buttons: {self.numButtons}") ## should be the number of 4 loops
+		stateList = [range(n + 1) for n in self.maxButtonPress]
 
-			if pos == self.targetjoltage:
-				break
-
-			posEnd = list(self.openList)[-1]
-
-			buttonPressCount = self.openList[pos][2]
-
-			self.closedList.append(pos)
-			self.openList.pop(pos)
-
-			# self.hueristic(posList)
-
-			# countPresses = self.stateDict[pos][0]
-
-			for buttonIndex, button in enumerate(self.buttons):
-				tmpCount = copy.deepcopy(buttonPressCount)
-				tmpCount[buttonIndex] += 1
-				newStateList = self.pressButton(pos, button)
-
-				qValid  = self.isValid(newStateList, tmpCount, True)
-				if not qValid:
-					continue
-
-				newState = str(newStateList)
-				# print(newState)
-				if newState in self.closedList:
-					continue
-
-				ten_g = curPosHuer_g + 1
-
-				if newState not in self.openList:
-					self.openList[newState] = [ten_g, ten_g+self.hueristic(newStateList, self.targetjoltage), tmpCount, pos]
-					self.stateDict[newState] = [ten_g, ten_g+self.hueristic(newStateList, self.targetjoltage), tmpCount, pos]
-				elif ten_g > self.openList[newState][0]:
-					continue
-				else:
-					self.openList[newState] = [ten_g, ten_g+self.hueristic(newStateList, self.targetjoltage), tmpCount, pos]
-					self.stateDict[newState] = [ten_g, ten_g+self.hueristic(newStateList, self.targetjoltage), tmpCount, pos]
-
-
-
-			sorted_dict = {k: v for k, v in sorted(self.openList.items(), key=lambda item: item[1][1])}
-
-
-			self.openList = sorted_dict
+		for presses in product(*stateList):
+			# print(presses[0]/self.maxButtonPress[0])
+			self.checkFunction(presses)
 
 
 
