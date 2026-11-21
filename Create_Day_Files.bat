@@ -1,1 +1,1 @@
-python Create_Day_Files.py
+python Create_Day_Files.py -d 1 -y 2025 --pyth --veri

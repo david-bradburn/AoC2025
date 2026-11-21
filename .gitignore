@@ -210,3 +210,7 @@ __marimo__/
 ## Misc
 input.txt
 zdebug.txt
+
+# verilog
+.vvp
+.vcd
